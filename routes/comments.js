@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
 const DUMB_COMMENT = {
@@ -27,4 +27,4 @@ router.delete('/:articleId/:commentId', (req, res, next) => {
   res.status(204);
 });
 
-module.exports = router;
+export default router;

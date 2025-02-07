@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
 const DUMB_CATEGORY = {
@@ -37,4 +37,4 @@ router.delete('/:categoryId', (req, res, next) => {
   res.status(204);
 });
 
-module.exports = router;
+export default router;

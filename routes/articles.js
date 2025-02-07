@@ -1,10 +1,11 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
 const DUMB_ARTICLE = {
   "id": 1,
   "title": "test article",
   "text": "some test article",
+  "created_at": Math.floor(new Date() / 1000),
   "category": {
     "id": 1,
     "name": "test category",
@@ -48,4 +49,4 @@ router.delete('/:articleId', (req, res, next) => {
   res.status(204);
 });
 
-module.exports = router;
+export default router;
