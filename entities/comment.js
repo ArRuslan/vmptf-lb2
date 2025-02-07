@@ -14,12 +14,14 @@ export const Comment = new EntitySchema({
             type: "many-to-one",
             joinTable: true,
             cascade: true,
+            nullable: false,
         },
         user: {
             target: "User",
             type: "many-to-one",
             joinTable: true,
             cascade: true,
+            nullable: false,
         },
     }
 })

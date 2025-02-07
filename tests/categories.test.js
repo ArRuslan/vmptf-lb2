@@ -79,8 +79,6 @@ describe("Test categories endpoints", () => {
     test("Get categories", async () => {
         const response = await request(app).get("/categories");
 
-        console.log(response.body)
-
         expect(response.statusCode).toBe(200);
         expect(response.body.count).toBeDefined();
         expect(response.body.result).toBeDefined();

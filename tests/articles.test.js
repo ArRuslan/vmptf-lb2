@@ -71,8 +71,6 @@ describe("Test articles endpoints", () => {
     test("Get articles", async () => {
         const response = await request(app).get("/articles");
 
-        console.log(response.body)
-
         expect(response.statusCode).toBe(200);
         expect(response.body.count).toBeDefined();
         expect(response.body.result).toBeDefined();

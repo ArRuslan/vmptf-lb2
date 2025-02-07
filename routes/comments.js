@@ -55,7 +55,7 @@ router.post(
     getValidationDataOrFail,
     authenticateJwt,
     (req, res) => {
-        const userRep = getDataSource().getRepository("Article");
+        const userRep = getDataSource().getRepository("User");
         const articleRep = getDataSource().getRepository("Article");
         const commentRep = getDataSource().getRepository("Comment");
 
@@ -65,7 +65,7 @@ router.post(
                 return res.send({errors: ["Unauthorized"]});
             }
 
-            articleRep.findBy({"id": req.validated.articleId}).then((article) => {
+            articleRep.findOneBy({"id": req.validated.articleId}).then((article) => {
                 if (article === null) {
                     res.status(404);
                     return res.send({errors: ["Unknown Article"]});
@@ -73,6 +73,10 @@ router.post(
 
                 const comment = {
                     "text": req.validated.text,
+                    "created_at": Math.floor(new Date() / 1000),
+                    "article": {
+                        "id": article.id,
+                    },
                     "user": {
                         "id": user.id,
                         "name": user.name,
@@ -80,6 +84,7 @@ router.post(
                 }
 
                 commentRep.insert(comment).then(result => {
+                    delete comment["article"];
                     res.status(200);
                     res.json({
                         "id": result.identifiers[0]["id"],
@@ -99,19 +104,19 @@ router.delete(
     authenticateJwt,
     (req, res) => {
         const commentRep = getDataSource().getRepository("Comment");
-        commentRep.find({
-            where: {
-                "id": req.validated.commentId,
-                "article": {"id": req.validated.articleId},
-                "user": {"id": req.user.uid},
-            },
+        commentRep.findOneBy({
+            "id": req.validated.commentId,
+            "article": {"id": req.validated.articleId},
+            "user": {"id": req.user.uid},
         }).then((comment) => {
             if (comment === null) {
                 res.status(404);
                 return res.send({errors: ["Unknown Comment"]});
             }
 
-            commentRep.remove(comment).then(() => {
+            console.log(comment)
+            commentRep.remove(comment).then((r) => {
+                console.log(r)
                 res.sendStatus(204);
             });
         });
