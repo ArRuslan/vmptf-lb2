@@ -158,12 +158,50 @@ router.get(
 router.patch(
     "/:articleId",
     param("articleId").isInt(),
+    body("title").trim().notEmpty().escape(),
+    body("text").trim().notEmpty().escape(),
     getValidationDataOrFail,
     authenticateJwt,
     (req, res, next) => {
-        // TODO: update article
-        res.status(200);
-        res.json(DUMB_ARTICLE);
+        const articleRep = dataSource.getRepository("Article");
+        articleRep.findOne({
+            where: {
+                "id": req.validated.articleId,
+                "publisher": {"id": req.user.uid},
+            },
+            relations: {
+                category: true,
+                publisher: true,
+            }
+        }).then(article => {
+            if (article === null) {
+                res.status(400);
+                return res.send({errors: ["Unknown Article"]});
+            }
+
+            if(req.validated.title)
+                article.title = req.validated.title;
+            if(req.validated.text)
+                article.text = req.validated.text;
+
+            articleRep.save(article).then(() => {
+                res.status(200);
+                res.json({
+                    "id": article.id,
+                    "title": article.title,
+                    "text": article.text,
+                    "created_at": article.created_at,
+                    "category": {
+                        "id": article.category.id,
+                        "name": article.category.name,
+                    },
+                    "publisher": {
+                        "id": article.publisher.id,
+                        "name": article.publisher.name,
+                    },
+                });
+            });
+        });
     }
 );
 
@@ -173,8 +211,26 @@ router.delete(
     getValidationDataOrFail,
     authenticateJwt,
     (req, res, next) => {
-        // TODO: delete article from database
-        res.status(204);
+        const articleRep = dataSource.getRepository("Article");
+        articleRep.findOne({
+            where: {
+                "id": req.validated.articleId,
+                "publisher": {"id": req.user.uid},
+            },
+            relations: {
+                category: true,
+                publisher: true,
+            }
+        }).then(article => {
+            if (article === null) {
+                res.status(400);
+                return res.send({errors: ["Unknown Article"]});
+            }
+
+            articleRep.remove(article).then(() => {
+                res.sendStatus(204);
+            });
+        });
     }
 );
 

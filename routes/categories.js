@@ -75,13 +75,27 @@ router.get(
 router.patch(
     "/:categoryId",
     param("categoryId").isInt(),
+    body("name").trim().notEmpty().escape(),
     getValidationDataOrFail,
     authenticateJwt,
     authAdmin,
     (req, res, next) => {
-        // TODO: update category
-        res.status(200);
-        res.json(DUMB_CATEGORY);
+        const categoryRep = dataSource.getRepository("Category");
+        categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
+            if (category === null) {
+                res.status(400);
+                return res.send({errors: ["Unknown Category"]});
+            }
+
+            category.name = req.validated.name;
+            categoryRep.save(category).then(() => {
+                res.status(200);
+                res.json({
+                    "id": category.id,
+                    "name": category.name,
+                });
+            });
+        });
     }
 );
 
@@ -92,8 +106,15 @@ router.delete(
     authenticateJwt,
     authAdmin,
     (req, res, next) => {
-        // TODO: delete category from database
-        res.status(204);
+        const categoryRep = dataSource.getRepository("Category");
+        categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
+            if (category === null) {
+                res.status(400);
+                return res.send({errors: ["Unknown Category"]});
+            }
+
+            categoryRep.remove(category).then(() => res.sendStatus(204));
+        });
     }
 );
 
