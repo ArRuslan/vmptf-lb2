@@ -10,7 +10,7 @@ router.post(
     '/login',
     body("email").trim().isEmail(),
     body("password").trim().notEmpty(),
-    (req, res, next) => {
+    (req, res) => {
         const result = validationResult(req);
         if (!result.isEmpty()) {
             res.status(400);
@@ -52,7 +52,7 @@ router.post(
     body("email").trim().isEmail(),
     body("name").trim().notEmpty(),
     body("password").trim().notEmpty(),
-    (req, res, next) => {
+    (req, res) => {
         const result = validationResult(req);
         if (!result.isEmpty()) {
             res.status(400);

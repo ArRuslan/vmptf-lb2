@@ -10,7 +10,7 @@ router.get(
     query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
     query("page_size").trim().isInt({allow_leading_zeroes: false}).default(25),
     getValidationDataOrFail,
-    (req, res, next) => {
+    (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
 
@@ -40,7 +40,7 @@ router.post(
     getValidationDataOrFail,
     authenticateJwt,
     authAdmin,
-    (req, res, next) => {
+    (req, res) => {
         const data = req.validated;
         const categoryRep = dataSource.getRepository("Category");
 
@@ -65,7 +65,7 @@ router.get(
     "/:categoryId",
     param("categoryId").isInt(),
     getValidationDataOrFail,
-    (req, res, next) => {
+    (req, res) => {
         const categoryRep = dataSource.getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
@@ -89,7 +89,7 @@ router.patch(
     getValidationDataOrFail,
     authenticateJwt,
     authAdmin,
-    (req, res, next) => {
+    (req, res) => {
         const categoryRep = dataSource.getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
@@ -115,7 +115,7 @@ router.delete(
     getValidationDataOrFail,
     authenticateJwt,
     authAdmin,
-    (req, res, next) => {
+    (req, res) => {
         const categoryRep = dataSource.getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {

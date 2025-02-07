@@ -1,30 +1,121 @@
 import express from "express";
+import {body, param, query} from "express-validator";
+import {authenticateJwt, getValidationDataOrFail} from "../utils.js";
+import dataSource from "../data_source.js";
+
 const router = express.Router();
 
-const DUMB_COMMENT = {
-  "id": 1,
-  "text": "some test comment",
-  "user": {
-    "id": 1,
-    "name": "some user",
-  },
-}
+router.get(
+    "/:articleId",
+    param("articleId").isInt(),
+    query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
+    query("page_size").trim().isInt({allow_leading_zeroes: false}).default(25),
+    getValidationDataOrFail,
+    (req, res) => {
+        const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
+        const offset = limit * (req.validated.page - 1);
 
-router.get('/:articleId', (req, res, next) => {
-  // TODO: fetch article comments from database (with pagination)
-  res.status(200);
-  res.json([DUMB_COMMENT]);
-});
+        const articleRep = dataSource.getRepository("Article");
+        const commentRep = dataSource.getRepository("Comment");
+        articleRep.findBy({"id": req.validated.articleId}).then((article) => {
+            if (article === null) {
+                res.status(400);
+                return res.send({errors: ["Unknown Article"]});
+            }
 
-router.post('/:articleId', (req, res, next) => {
-  // TODO: create new comment
-  res.status(200);
-  res.json(DUMB_COMMENT);
-});
+            commentRep.findAndCount({
+                order: {"created_at": "DESC"},
+                skip: offset,
+                take: limit,
+                relations: {
+                    user: true,
+                },
+            }).then((comments, count) => {
+                res.status(200);
+                res.json({
+                    "count": count,
+                    "result": comments.map(comment => ({
+                        "id": comment.id,
+                        "text": comment.text,
+                        "user": {
+                            "id": comment.user.id,
+                            "name": comment.user.name,
+                        },
+                    }))
+                });
+            })
+        });
+    }
+);
 
-router.delete('/:articleId/:commentId', (req, res, next) => {
-  // TODO: delete comment from database
-  res.status(204);
-});
+router.post(
+    "/:articleId",
+    param("articleId").isInt(),
+    body("text").trim().notEmpty().escape(),
+    getValidationDataOrFail,
+    authenticateJwt,
+    (req, res) => {
+        const userRep = dataSource.getRepository("Article");
+        const articleRep = dataSource.getRepository("Article");
+        const commentRep = dataSource.getRepository("Comment");
+
+        userRep.findOneBy({"id": req.user.uid}).then(user => {
+            if (user === null) {
+                res.status(401);
+                return res.send({errors: ["Unauthorized"]});
+            }
+
+            articleRep.findBy({"id": req.validated.articleId}).then((article) => {
+                if (article === null) {
+                    res.status(400);
+                    return res.send({errors: ["Unknown Article"]});
+                }
+
+                const comment = {
+                    "text": req.validated.text,
+                    "user": {
+                        "id": user.id,
+                        "name": user.name,
+                    },
+                }
+
+                commentRep.insert(comment).then(result => {
+                    res.status(200);
+                    res.json({
+                        "id": result.identifiers[0]["id"],
+                        ...comment,
+                    });
+                });
+            });
+        });
+    }
+);
+
+router.delete(
+    "/:articleId/:commentId",
+    param("articleId").isInt(),
+    param("commentId").isInt(),
+    getValidationDataOrFail,
+    authenticateJwt,
+    (req, res) => {
+        const commentRep = dataSource.getRepository("Comment");
+        commentRep.find({
+            where: {
+                "id": req.validated.commentId,
+                "article": {"id": req.validated.articleId},
+                "user": {"id": req.user.uid},
+            },
+        }).then((comment) => {
+            if (comment === null) {
+                res.status(400);
+                return res.send({errors: ["Unknown Comment"]});
+            }
+
+            commentRep.remove(comment).then(() => {
+                res.sendStatus(204);
+            });
+        });
+    }
+);
 
 export default router;

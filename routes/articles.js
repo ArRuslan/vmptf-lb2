@@ -10,7 +10,7 @@ router.get(
     query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
     query("page_size").trim().isInt({allow_leading_zeroes: false}).default(25),
     getValidationDataOrFail,
-    (req, res, next) => {
+    (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
 
@@ -57,7 +57,7 @@ router.post(
     body("category_id").isInt({allow_leading_zeroes: false}),
     getValidationDataOrFail,
     authenticateJwt,
-    (req, res, next) => {
+    (req, res) => {
         const data = req.validated;
         const userRep = dataSource.getRepository("User");
         const categoryRep = dataSource.getRepository("Category");
@@ -105,7 +105,7 @@ router.get(
     "/:articleId",
     param("articleId").isInt(),
     getValidationDataOrFail,
-    (req, res, next) => {
+    (req, res) => {
         const articleRep = dataSource.getRepository("Article");
         articleRep.findOne({
             where: {
@@ -118,7 +118,7 @@ router.get(
         }).then(article => {
             if (article === null) {
                 res.status(400);
-                return res.send({errors: ["Unknown Category"]});
+                return res.send({errors: ["Unknown Article"]});
             }
 
             res.status(200);
@@ -147,7 +147,7 @@ router.patch(
     body("text").trim().notEmpty().escape(),
     getValidationDataOrFail,
     authenticateJwt,
-    (req, res, next) => {
+    (req, res) => {
         const articleRep = dataSource.getRepository("Article");
         articleRep.findOne({
             where: {
@@ -195,7 +195,7 @@ router.delete(
     param("articleId").isInt(),
     getValidationDataOrFail,
     authenticateJwt,
-    (req, res, next) => {
+    (req, res) => {
         const articleRep = dataSource.getRepository("Article");
         articleRep.findOne({
             where: {
