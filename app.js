@@ -8,7 +8,7 @@ import categoriesRouter from "./routes/categories.js";
 import commentsRouter from "./routes/comments.js";
 import dataSource from "./data_source.js";
 
-const app = express();
+export const app = express();
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -25,7 +25,6 @@ app.use((req, res, next) => {
 
 dataSource
     .initialize()
-    .then(() => app.listen(parseInt(process.env.PORT || "3000")))
     .catch((error) => {
         console.log("Error: ", error)
     });

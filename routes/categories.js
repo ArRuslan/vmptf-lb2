@@ -5,20 +5,30 @@ import dataSource from "../data_source.js";
 
 const router = express.Router();
 
-const DUMB_CATEGORY = {
-    "id": 1,
-    "name": "test category",
-};
-
 router.get(
     "/",
     query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
     query("page_size").trim().isInt({allow_leading_zeroes: false}).default(25),
     getValidationDataOrFail,
     (req, res, next) => {
-        // TODO: fetch categories from database (with pagination)
-        res.status(200);
-        res.json([DUMB_CATEGORY]);
+        const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
+        const offset = limit * (req.validated.page - 1);
+
+        const categoryRep = dataSource.getRepository("Category");
+        categoryRep.findAndCount({
+            order: {"created_at": "DESC"},
+            skip: offset,
+            take: limit,
+        }).then((categories, count) => {
+            res.status(200);
+            res.json({
+                "count": count,
+                "result": categories.map(category => ({
+                    "id": category.id,
+                    "title": category.name,
+                }))
+            });
+        });
     }
 );
 

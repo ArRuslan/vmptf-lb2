@@ -5,21 +5,6 @@ import {authenticateJwt, getValidationDataOrFail} from "../utils.js";
 
 const router = express.Router();
 
-const DUMB_ARTICLE = {
-    "id": 1,
-    "title": "test article",
-    "text": "some test article",
-    "created_at": Math.floor(new Date() / 1000),
-    "category": {
-        "id": 1,
-        "name": "test category",
-    },
-    "publisher": {
-        "id": 1,
-        "name": "some user",
-    },
-}
-
 router.get(
     "/",
     query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
