@@ -61,8 +61,6 @@ describe("Test comments endpoints", () => {
             .set("Content-Type", "application/json")
             .set("Authorization", `Bearer ${token}`);
 
-        console.log(response.body)
-
         expect(response.statusCode).toBe(200);
         expect(response.body.id).toBeDefined();
         expect(response.body.id).toBe(1);

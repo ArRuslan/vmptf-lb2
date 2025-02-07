@@ -114,9 +114,7 @@ router.delete(
                 return res.send({errors: ["Unknown Comment"]});
             }
 
-            console.log(comment)
             commentRep.remove(comment).then((r) => {
-                console.log(r)
                 res.sendStatus(204);
             });
         });
