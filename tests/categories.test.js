@@ -6,7 +6,7 @@ import {UserRole} from "../entities/user_role.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-describe("Test auth endpoints", () => {
+describe("Test categories endpoints", () => {
     let user_token, admin_token;
 
     beforeAll(async () => {

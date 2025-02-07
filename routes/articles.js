@@ -143,8 +143,8 @@ router.get(
 router.patch(
     "/:articleId",
     param("articleId").isInt(),
-    body("title").trim().notEmpty().escape(),
-    body("text").trim().notEmpty().escape(),
+    body("title").default("").trim().escape(),
+    body("text").default("").trim().escape(),
     getValidationDataOrFail,
     authenticateJwt,
     (req, res) => {
