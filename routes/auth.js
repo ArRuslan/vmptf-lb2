@@ -6,15 +6,10 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-const DUMB_USER = {
-    "id": 1,
-    "name": "some user",
-};
-
 router.post(
     '/login',
     body("email").trim().isEmail(),
-    body("password").trim(),
+    body("password").trim().notEmpty(),
     (req, res, next) => {
         const result = validationResult(req);
         if (!result.isEmpty()) {
@@ -55,8 +50,8 @@ router.post(
 router.post(
     "/register",
     body("email").trim().isEmail(),
-    body("name").trim(),
-    body("password").trim(),
+    body("name").trim().notEmpty(),
+    body("password").trim().notEmpty(),
     (req, res, next) => {
         const result = validationResult(req);
         if (!result.isEmpty()) {
