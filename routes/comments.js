@@ -1,7 +1,7 @@
 import express from "express";
 import {body, param, query} from "express-validator";
 import {authenticateJwt, getValidationDataOrFail} from "../utils.js";
-import dataSource from "../data_source.js";
+import {getDataSource} from "../data_source.js";
 
 const router = express.Router();
 
@@ -15,8 +15,8 @@ router.get(
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
 
-        const articleRep = dataSource.getRepository("Article");
-        const commentRep = dataSource.getRepository("Comment");
+        const articleRep = getDataSource().getRepository("Article");
+        const commentRep = getDataSource().getRepository("Comment");
         articleRep.findBy({"id": req.validated.articleId}).then((article) => {
             if (article === null) {
                 res.status(400);
@@ -55,9 +55,9 @@ router.post(
     getValidationDataOrFail,
     authenticateJwt,
     (req, res) => {
-        const userRep = dataSource.getRepository("Article");
-        const articleRep = dataSource.getRepository("Article");
-        const commentRep = dataSource.getRepository("Comment");
+        const userRep = getDataSource().getRepository("Article");
+        const articleRep = getDataSource().getRepository("Article");
+        const commentRep = getDataSource().getRepository("Comment");
 
         userRep.findOneBy({"id": req.user.uid}).then(user => {
             if (user === null) {
@@ -98,7 +98,7 @@ router.delete(
     getValidationDataOrFail,
     authenticateJwt,
     (req, res) => {
-        const commentRep = dataSource.getRepository("Comment");
+        const commentRep = getDataSource().getRepository("Comment");
         commentRep.find({
             where: {
                 "id": req.validated.commentId,

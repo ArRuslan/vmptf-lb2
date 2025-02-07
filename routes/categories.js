@@ -1,7 +1,7 @@
 import express from "express";
 import {body, param, query} from "express-validator";
 import {authAdmin, authenticateJwt, getValidationDataOrFail} from "../utils.js";
-import dataSource from "../data_source.js";
+import {getDataSource} from "../data_source.js";
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.get(
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
 
-        const categoryRep = dataSource.getRepository("Category");
+        const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findAndCount({
             order: {"created_at": "DESC"},
             skip: offset,
@@ -42,7 +42,7 @@ router.post(
     authAdmin,
     (req, res) => {
         const data = req.validated;
-        const categoryRep = dataSource.getRepository("Category");
+        const categoryRep = getDataSource().getRepository("Category");
 
         categoryRep.findOneBy({"id": data.category_id}).then(category => {
             if (category !== null) {
@@ -66,7 +66,7 @@ router.get(
     param("categoryId").isInt(),
     getValidationDataOrFail,
     (req, res) => {
-        const categoryRep = dataSource.getRepository("Category");
+        const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
                 res.status(400);
@@ -90,7 +90,7 @@ router.patch(
     authenticateJwt,
     authAdmin,
     (req, res) => {
-        const categoryRep = dataSource.getRepository("Category");
+        const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
                 res.status(400);
@@ -116,7 +116,7 @@ router.delete(
     authenticateJwt,
     authAdmin,
     (req, res) => {
-        const categoryRep = dataSource.getRepository("Category");
+        const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
                 res.status(400);

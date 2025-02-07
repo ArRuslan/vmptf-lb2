@@ -6,7 +6,6 @@ import authRouter from "./routes/auth.js";
 import articlesRouter from "./routes/articles.js";
 import categoriesRouter from "./routes/categories.js";
 import commentsRouter from "./routes/comments.js";
-import dataSource from "./data_source.js";
 
 export const app = express();
 
@@ -22,9 +21,3 @@ app.use("/comments", commentsRouter);
 app.use((req, res, next) => {
     next(createError(404));
 });
-
-dataSource
-    .initialize()
-    .catch((error) => {
-        console.log("Error: ", error)
-    });

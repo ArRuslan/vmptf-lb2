@@ -1,6 +1,6 @@
 import express from "express";
 import {body, param, query} from "express-validator";
-import dataSource from "../data_source.js";
+import {getDataSource} from "../data_source.js";
 import {authenticateJwt, getValidationDataOrFail} from "../utils.js";
 
 const router = express.Router();
@@ -14,7 +14,7 @@ router.get(
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
 
-        const articleRep = dataSource.getRepository("Article");
+        const articleRep = getDataSource().getRepository("Article");
         articleRep.findAndCount({
             order: {"created_at": "DESC"},
             skip: offset,
@@ -59,9 +59,9 @@ router.post(
     authenticateJwt,
     (req, res) => {
         const data = req.validated;
-        const userRep = dataSource.getRepository("User");
-        const categoryRep = dataSource.getRepository("Category");
-        const articleRep = dataSource.getRepository("Article");
+        const userRep = getDataSource().getRepository("User");
+        const categoryRep = getDataSource().getRepository("Category");
+        const articleRep = getDataSource().getRepository("Article");
 
         userRep.findOneBy({"id": req.user.uid}).then(user => {
             if (user === null) {
@@ -106,7 +106,7 @@ router.get(
     param("articleId").isInt(),
     getValidationDataOrFail,
     (req, res) => {
-        const articleRep = dataSource.getRepository("Article");
+        const articleRep = getDataSource().getRepository("Article");
         articleRep.findOne({
             where: {
                 "id": req.validated.articleId,
@@ -148,7 +148,7 @@ router.patch(
     getValidationDataOrFail,
     authenticateJwt,
     (req, res) => {
-        const articleRep = dataSource.getRepository("Article");
+        const articleRep = getDataSource().getRepository("Article");
         articleRep.findOne({
             where: {
                 "id": req.validated.articleId,
@@ -196,7 +196,7 @@ router.delete(
     getValidationDataOrFail,
     authenticateJwt,
     (req, res) => {
-        const articleRep = dataSource.getRepository("Article");
+        const articleRep = getDataSource().getRepository("Article");
         articleRep.findOne({
             where: {
                 "id": req.validated.articleId,

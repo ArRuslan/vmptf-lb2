@@ -1,6 +1,6 @@
 import express from "express";
 import {body, matchedData, validationResult} from "express-validator";
-import dataSource from "../data_source.js";
+import {getDataSource} from "../data_source.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -19,7 +19,7 @@ router.post(
         }
 
         const data = matchedData(req);
-        const userRep = dataSource.getRepository("User");
+        const userRep = getDataSource().getRepository("User");
         userRep.findOneBy({
             "email": data.email,
         }).then(user => {
@@ -61,7 +61,7 @@ router.post(
         }
 
         const data = matchedData(req);
-        const userRep = dataSource.getRepository("User");
+        const userRep = getDataSource().getRepository("User");
         userRep.findOneBy({
             "email": data.email,
         }).then(user => {
