@@ -18,7 +18,7 @@ export const authenticateJwt = (req, res, next) => {
 }
 
 export const authAdmin = (req, res, next) => {
-    if (req.user.role >= UserRole.ADMIN) next();
+    if (req.user.role >= UserRole.ADMIN) return next();
 
     res.status(403);
     return res.send({errors: ["Insufficient privileges"]});

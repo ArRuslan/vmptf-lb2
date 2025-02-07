@@ -26,6 +26,9 @@ describe("Test auth endpoints", () => {
             .set("Content-Type", "application/json");
 
         expect(response.statusCode).toBe(400);
+        expect(response.body.token).toBeUndefined();
+        expect(response.body.expires_at).toBeUndefined();
+        expect(response.body.user).toBeUndefined();
     });
 
     test("Login with invalid email", async () => {
@@ -35,6 +38,9 @@ describe("Test auth endpoints", () => {
             .set("Content-Type", "application/json");
 
         expect(response.statusCode).toBe(400);
+        expect(response.body.token).toBeUndefined();
+        expect(response.body.expires_at).toBeUndefined();
+        expect(response.body.user).toBeUndefined();
     });
 
     test("Login without password", async () => {
@@ -44,6 +50,9 @@ describe("Test auth endpoints", () => {
             .set("Content-Type", "application/json");
 
         expect(response.statusCode).toBe(400);
+        expect(response.body.token).toBeUndefined();
+        expect(response.body.expires_at).toBeUndefined();
+        expect(response.body.user).toBeUndefined();
     });
 
     test("Register", async () => {
@@ -53,6 +62,11 @@ describe("Test auth endpoints", () => {
             .set("Content-Type", "application/json");
 
         expect(response.statusCode).toBe(200);
+        expect(response.body.token).toBeDefined();
+        expect(response.body.expires_at).toBeDefined();
+        expect(response.body.user).toBeDefined();
+        expect(response.body.user.id).toBeDefined();
+        expect(response.body.user.name).toBeDefined();
     });
 
     test("Login with correct credentials", async () => {
@@ -62,5 +76,10 @@ describe("Test auth endpoints", () => {
             .set("Content-Type", "application/json");
 
         expect(response.statusCode).toBe(200);
+        expect(response.body.token).toBeDefined();
+        expect(response.body.expires_at).toBeDefined();
+        expect(response.body.user).toBeDefined();
+        expect(response.body.user.id).toBeDefined();
+        expect(response.body.user.name).toBeDefined();
     });
 });

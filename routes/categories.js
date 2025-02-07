@@ -7,8 +7,8 @@ const router = express.Router();
 
 router.get(
     "/",
-    query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
-    query("page_size").trim().isInt({allow_leading_zeroes: false}).default(25),
+    query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
+    query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
     getValidationDataOrFail,
     (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
@@ -16,16 +16,16 @@ router.get(
 
         const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findAndCount({
-            order: {"created_at": "DESC"},
+            order: {"id": "DESC"},
             skip: offset,
             take: limit,
-        }).then((categories, count) => {
+        }).then(([categories, count]) => {
             res.status(200);
             res.json({
                 "count": count,
                 "result": categories.map(category => ({
                     "id": category.id,
-                    "title": category.name,
+                    "name": category.name,
                 }))
             });
         });
@@ -69,7 +69,7 @@ router.get(
         const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
-                res.status(400);
+                res.status(404);
                 return res.send({errors: ["Unknown Category"]});
             }
 
@@ -93,7 +93,7 @@ router.patch(
         const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
-                res.status(400);
+                res.status(404);
                 return res.send({errors: ["Unknown Category"]});
             }
 
@@ -119,7 +119,7 @@ router.delete(
         const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {
             if (category === null) {
-                res.status(400);
+                res.status(404);
                 return res.send({errors: ["Unknown Category"]});
             }
 

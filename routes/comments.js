@@ -8,8 +8,8 @@ const router = express.Router();
 router.get(
     "/:articleId",
     param("articleId").isInt(),
-    query("page").trim().isInt({allow_leading_zeroes: false}).default(1),
-    query("page_size").trim().isInt({allow_leading_zeroes: false}).default(25),
+    query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
+    query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
     getValidationDataOrFail,
     (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
@@ -19,7 +19,7 @@ router.get(
         const commentRep = getDataSource().getRepository("Comment");
         articleRep.findBy({"id": req.validated.articleId}).then((article) => {
             if (article === null) {
-                res.status(400);
+                res.status(404);
                 return res.send({errors: ["Unknown Article"]});
             }
 
@@ -30,7 +30,7 @@ router.get(
                 relations: {
                     user: true,
                 },
-            }).then((comments, count) => {
+            }).then(([comments, count]) => {
                 res.status(200);
                 res.json({
                     "count": count,
@@ -67,7 +67,7 @@ router.post(
 
             articleRep.findBy({"id": req.validated.articleId}).then((article) => {
                 if (article === null) {
-                    res.status(400);
+                    res.status(404);
                     return res.send({errors: ["Unknown Article"]});
                 }
 
@@ -107,7 +107,7 @@ router.delete(
             },
         }).then((comment) => {
             if (comment === null) {
-                res.status(400);
+                res.status(404);
                 return res.send({errors: ["Unknown Comment"]});
             }
 

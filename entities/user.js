@@ -9,6 +9,6 @@ export const User= new EntitySchema({
         name: {type: "varchar"},
         email: {type: "varchar", unique: true},
         password: {type: "varchar"},
-        role: {type: "tinyint", default: UserRole.USER},
+        role: {type: "smallint", default: UserRole.USER},
     },
 })
