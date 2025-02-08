@@ -156,7 +156,6 @@ describe("Test articles endpoints", () => {
 
     test("Search articles by date (empty)", async () => {
         const response = await request(app).get(`/articles/search?min_date=${Math.floor(new Date() / 1000 + 1)}`);
-        console.log(response.body)
 
         expect(response.statusCode).toBe(200);
         expect(response.body.count).toBeDefined();

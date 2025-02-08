@@ -30,6 +30,9 @@ router.get(
                 relations: {
                     user: true,
                 },
+                where: {
+                    article: {"id": req.validated.articleId},
+                }
             }).then(([comments, count]) => {
                 res.status(200);
                 res.json({
@@ -37,6 +40,7 @@ router.get(
                     "result": comments.map(comment => ({
                         "id": comment.id,
                         "text": comment.text,
+                        "created_at": comment.created_at,
                         "user": {
                             "id": comment.user.id,
                             "name": comment.user.name,

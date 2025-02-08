@@ -96,8 +96,6 @@ router.get(
                 req.validated.max_date || (Math.floor(new Date() / 1000 + 1))
             );
 
-        console.log(query)
-
         fetchArticles(limit, offset, {where: query}).then(response => {
             res.status(200);
             res.json(response);

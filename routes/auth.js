@@ -41,6 +41,7 @@ router.post(
                 "user": {
                     "id": user.id,
                     "name": user.name,
+                    "role": user.role,
                 },
             });
         });
@@ -77,13 +78,15 @@ router.post(
                 "name": data.name,
             }).then(result => {
                 const user_id = result.identifiers[0]["id"];
+                const role = result.generatedMaps[0]["role"];
                 res.status(200);
                 res.json({
-                    "token": jwt.sign({"uid": user_id, "role": result.generatedMaps[0]["role"]}, process.env.TOKEN_SECRET, {expiresIn: "1d"}),
+                    "token": jwt.sign({"uid": user_id, "role": role}, process.env.TOKEN_SECRET, {expiresIn: "1d"}),
                     "expires_at": Math.floor(new Date() / 1000) + 86400,
                     "user": {
                         "id": user_id,
                         "name": data.name,
+                        "role": role,
                     },
                 });
             });
