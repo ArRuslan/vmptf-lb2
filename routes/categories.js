@@ -1,9 +1,11 @@
 import express from "express";
 import {body, param, query} from "express-validator";
-import {authAdmin, authenticateJwt, getValidationDataOrFail} from "../utils.js";
+import {authAdmin, authenticateJwt, getValidationDataOrFail, setCacheKeyFromRequest} from "../utils.js";
 import {getDataSource} from "../data_source.js";
 import {ILike} from "typeorm";
+import cache_ from "express-redis-cache";
 
+const cache = cache_({expire: 60});
 const router = express.Router();
 
 /**
@@ -36,6 +38,8 @@ router.get(
     query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
     query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
     getValidationDataOrFail,
+    setCacheKeyFromRequest("fetch-categories"),
+    cache.route(),
     (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
@@ -53,6 +57,8 @@ router.get(
     query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
     query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
     getValidationDataOrFail,
+    setCacheKeyFromRequest("search-categories"),
+    cache.route(),
     (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
@@ -99,6 +105,8 @@ router.get(
     "/:categoryId",
     param("categoryId").isInt(),
     getValidationDataOrFail,
+    setCacheKeyFromRequest("get-category"),
+    cache.route(),
     (req, res) => {
         const categoryRep = getDataSource().getRepository("Category");
         categoryRep.findOneBy({"id": req.validated.categoryId}).then(category => {

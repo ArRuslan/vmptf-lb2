@@ -6,6 +6,7 @@ import crypto from "crypto";
 describe("Test auth endpoints", () => {
     beforeAll(async () => {
         process.env.TOKEN_SECRET = crypto.randomBytes(64).toString('hex');
+        process.env.SKIP_CACHE = "true";
         createDataSource({
             type: "sqlite",
             database: ":memory:",

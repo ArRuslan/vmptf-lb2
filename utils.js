@@ -34,3 +34,19 @@ export const getValidationDataOrFail = (req, res, next) => {
     req.validated = matchedData(req);
     next();
 }
+
+export const setCacheKeyFromRequest = (route_name) => (req, res, next) => {
+    if(process.env.SKIP_CACHE === "true") {
+        res.use_express_redis_cache = false;
+        next();
+        return;
+    }
+
+    let name = route_name;
+    for(const key in req.validated) {
+        name += `&${key}=${req.validated[key]}`;
+    }
+
+    res.express_redis_cache_name = name;
+    next();
+}

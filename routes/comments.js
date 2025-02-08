@@ -1,8 +1,10 @@
 import express from "express";
 import {body, param, query} from "express-validator";
-import {authenticateJwt, getValidationDataOrFail} from "../utils.js";
+import {authenticateJwt, getValidationDataOrFail, setCacheKeyFromRequest} from "../utils.js";
 import {getDataSource} from "../data_source.js";
+import cache_ from "express-redis-cache";
 
+const cache = cache_({expire: 60});
 const router = express.Router();
 
 router.get(
@@ -11,6 +13,8 @@ router.get(
     query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
     query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
     getValidationDataOrFail,
+    setCacheKeyFromRequest("fetch-comments"),
+    cache.route(),
     (req, res) => {
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
