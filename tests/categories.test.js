@@ -88,6 +88,28 @@ describe("Test categories endpoints", () => {
         expect(response.body.result[0].name).toBe("test category");
     });
 
+    test("Search categories", async () => {
+        const response = await request(app).get("/categories/search?name=test");
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(1);
+        expect(response.body.result.length).toBe(1);
+        expect(response.body.result[0].id).toBe(1);
+        expect(response.body.result[0].name).toBe("test category");
+    });
+
+    test("Search nonexistent category", async () => {
+        const response = await request(app).get("/categories/search?name=idk");
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(0);
+        expect(response.body.result.length).toBe(0);
+    });
+
     test("Get categories second page", async () => {
         const response = await request(app).get("/categories?page=2");
 

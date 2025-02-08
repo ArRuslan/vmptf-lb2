@@ -2,18 +2,17 @@ import express from "express";
 import {body, param, query} from "express-validator";
 import {getDataSource} from "../data_source.js";
 import {authenticateJwt, getValidationDataOrFail} from "../utils.js";
+import {Between, ILike} from "typeorm";
 
 const router = express.Router();
 
-router.get(
-    "/",
-    query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
-    query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
-    getValidationDataOrFail,
-    (req, res) => {
-        const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
-        const offset = limit * (req.validated.page - 1);
-
+/**
+ * @param {Number} limit
+ * @param {Number} offset
+ * @param {import("typeorm").FindManyOptions} query
+ */
+const fetchArticles = (limit, offset, query = {}) => {
+    return new Promise(resolve => {
         const articleRep = getDataSource().getRepository("Article");
         articleRep.findAndCount({
             order: {"created_at": "DESC"},
@@ -23,9 +22,9 @@ router.get(
                 category: true,
                 publisher: true,
             },
+            ...query,
         }).then(([articles, count]) => {
-            res.status(200);
-            res.json({
+            resolve({
                 "count": count,
                 "result": articles.map(article => ({
                     "id": article.id,
@@ -41,14 +40,70 @@ router.get(
                         "name": article.publisher.name,
                     },
                 }))
-            });
+            })
         });
+    })
+};
+
+router.get(
+    "/",
+    query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
+    query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
+    getValidationDataOrFail,
+    (req, res) => {
+        const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
+        const offset = limit * (req.validated.page - 1);
+
+        fetchArticles(limit, offset).then(response => {
+            res.status(200);
+            res.json(response);
+        })
     }
 );
 
-// TODO: search articles
-// TODO: filter articles by category
-// TODO: filter articles by user
+router.get(
+    "/search",
+    query("title").default("").trim().escape(),
+    query("text").default("").trim().escape(),
+    query("category_id").default(0).trim().isInt({min: 0, allow_leading_zeroes: false}),
+    query("publisher_id").default(0).trim().isInt({min: 0, allow_leading_zeroes: false}),
+    query("min_date").default(0).trim().isInt({min: 0, allow_leading_zeroes: false}),
+    query("max_date").default(0).trim().isInt({min: 0, allow_leading_zeroes: false}),
+    query("page").default(1).trim().isInt({min: 0, allow_leading_zeroes: false}),
+    query("page_size").default(25).trim().isInt({min: 0, allow_leading_zeroes: false}),
+    getValidationDataOrFail,
+    (req, res) => {
+        const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
+        const offset = limit * (req.validated.page - 1);
+
+        req.validated.category_id = Number(req.validated.category_id);
+        req.validated.publisher_id = Number(req.validated.publisher_id);
+        req.validated.min_date = Number(req.validated.min_date);
+        req.validated.max_date = Number(req.validated.max_date);
+
+        const query = {};
+        if(req.validated.title)
+            query.title = ILike(`%${req.validated.title}%`);
+        if(req.validated.text)
+            query.text = ILike(`%${req.validated.text}%`);
+        if(req.validated.category_id)
+            query.category = {"id": req.validated.category_id};
+        if(req.validated.publisher_id)
+            query.publisher = {"id": req.validated.publisher_id};
+        if(req.validated.min_date || req.validated.max_date)
+            query.created_at = Between(
+                (req.validated.min_date !== 0 || req.validated.min_date < new Date() / 1000) ? req.validated.min_date : 0,
+                req.validated.max_date || (Math.floor(new Date() / 1000 + 1))
+            );
+
+        console.log(query)
+
+        fetchArticles(limit, offset, {where: query}).then(response => {
+            res.status(200);
+            res.json(response);
+        });
+    }
+);
 
 router.post(
     "/",

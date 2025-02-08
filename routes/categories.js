@@ -2,8 +2,34 @@ import express from "express";
 import {body, param, query} from "express-validator";
 import {authAdmin, authenticateJwt, getValidationDataOrFail} from "../utils.js";
 import {getDataSource} from "../data_source.js";
+import {ILike} from "typeorm";
 
 const router = express.Router();
+
+/**
+ * @param {Number} limit
+ * @param {Number} offset
+ * @param {import("typeorm").FindManyOptions} query
+ */
+const fetchCategories = (limit, offset, query = {}) => {
+    return new Promise(resolve => {
+        const categoryRep = getDataSource().getRepository("Category");
+        categoryRep.findAndCount({
+            order: {"id": "DESC"},
+            skip: offset,
+            take: limit,
+            ...query,
+        }).then(([categories, count]) => {
+            resolve({
+                "count": count,
+                "result": categories.map(category => ({
+                    "id": category.id,
+                    "name": category.name,
+                }))
+            });
+        });
+    })
+}
 
 router.get(
     "/",
@@ -14,25 +40,33 @@ router.get(
         const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
         const offset = limit * (req.validated.page - 1);
 
-        const categoryRep = getDataSource().getRepository("Category");
-        categoryRep.findAndCount({
-            order: {"id": "DESC"},
-            skip: offset,
-            take: limit,
-        }).then(([categories, count]) => {
+        fetchCategories(limit, offset).then(response => {
             res.status(200);
-            res.json({
-                "count": count,
-                "result": categories.map(category => ({
-                    "id": category.id,
-                    "name": category.name,
-                }))
-            });
+            res.json(response);
         });
     }
 );
 
-// TODO: search categories
+router.get(
+    "/search",
+    query("name").default("").trim().escape(),
+    query("page").default(1).trim().isInt({allow_leading_zeroes: false}),
+    query("page_size").default(25).trim().isInt({allow_leading_zeroes: false}),
+    getValidationDataOrFail,
+    (req, res) => {
+        const limit = Math.max(Math.min(req.validated.page_size, 100), 1);
+        const offset = limit * (req.validated.page - 1);
+
+        const query = {};
+        if(req.validated.name)
+            query.name = ILike(`%${req.validated.name}%`);
+
+        fetchCategories(limit, offset, {where: query}).then(response => {
+            res.status(200);
+            res.json(response);
+        });
+    }
+);
 
 router.post(
     "/",

@@ -68,9 +68,7 @@ describe("Test articles endpoints", () => {
         expect(response.body.publisher.name).toBe("test user");
     });
 
-    test("Get articles", async () => {
-        const response = await request(app).get("/articles");
-
+    const _searchArticlesExpect = (response) => {
         expect(response.statusCode).toBe(200);
         expect(response.body.count).toBeDefined();
         expect(response.body.result).toBeDefined();
@@ -88,6 +86,83 @@ describe("Test articles endpoints", () => {
         expect(response.body.result[0].publisher).toBeDefined();
         expect(response.body.result[0].publisher.id).toBe(user_id);
         expect(response.body.result[0].publisher.name).toBe("test user");
+    }
+
+    test("Get articles", async () => {
+        const response = await request(app).get("/articles");
+        _searchArticlesExpect(response);
+    });
+
+    test("Search articles by name", async () => {
+        const response = await request(app).get("/articles/search?title=te");
+        _searchArticlesExpect(response);
+    });
+
+    test("Search articles by name (empty)", async () => {
+        const response = await request(app).get("/articles/search?title=idk");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(0);
+        expect(response.body.result.length).toBe(0);
+    });
+
+    test("Search articles by text", async () => {
+        const response = await request(app).get("/articles/search?text=some");
+        _searchArticlesExpect(response);
+    });
+
+    test("Search articles by text (empty)", async () => {
+        const response = await request(app).get("/articles/search?text=idk");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(0);
+        expect(response.body.result.length).toBe(0);
+    });
+
+    test("Search articles by category", async () => {
+        const response = await request(app).get(`/articles/search?category_id=${category_id}`);
+        _searchArticlesExpect(response);
+    });
+
+    test("Search articles by category (empty)", async () => {
+        const response = await request(app).get("/articles/search?category_id=101");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(0);
+        expect(response.body.result.length).toBe(0);
+    });
+
+    test("Search articles by publisher", async () => {
+        const response = await request(app).get(`/articles/search?publisher_id=${user_id}`);
+        _searchArticlesExpect(response);
+    });
+
+    test("Search articles by publisher (empty)", async () => {
+        const response = await request(app).get("/articles/search?publisher_id=101");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(0);
+        expect(response.body.result.length).toBe(0);
+    });
+
+    test("Search articles by date", async () => {
+        const response = await request(app).get(`/articles/search?min_date=${Math.floor(new Date() / 1000 - 60)}`);
+        _searchArticlesExpect(response);
+    });
+
+    test("Search articles by date (empty)", async () => {
+        const response = await request(app).get(`/articles/search?min_date=${Math.floor(new Date() / 1000 + 1)}`);
+        console.log(response.body)
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.count).toBeDefined();
+        expect(response.body.result).toBeDefined();
+        expect(response.body.count).toBe(0);
+        expect(response.body.result.length).toBe(0);
     });
 
     test("Get articles second page", async () => {
